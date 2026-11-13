@@ -2460,4 +2460,157 @@ const monsterData = [
 
 })();
 
+/* ==========================================
+   IMO.ONYX 등대던전 1~5층 공개 지도
+   기존 도감·직업 공략·검색 기능 유지
+   GitHub Pages에서 지도 자동 표시
+========================================== */
+
+(function () {
+  "use strict";
+
+  // 중복 실행 방지
+  if (window.__IMO_ONYX_PUBLIC_MAPS_V2__) return;
+  window.__IMO_ONYX_PUBLIC_MAPS_V2__ = true;
+
+  // 공개 체험판에서만 자동 지도 적용
+  // Acode에 저장한 기존 사진은 유지
+  if (
+    location.hostname !==
+    "wnstnsky123-hash.github.io"
+  ) {
+    return;
+  }
+
+  // GitHub 저장소에 등록한 지도 파일명
+  const mapFiles = {
+    1: "등대던전1층.jpg",
+    2: "등대던전2층.jpg",
+    3: "등대던전3층.jpg",
+    4: "등대던전4층.jpg",
+    5: "Screenshot_20261113_204340_Naver Cafe.jpg"
+  };
+
+  const storagePrefix =
+    "imo_onyx_lighthouse_v1_photo_";
+
+  // 1~5층 사진을 웹사이트 주소에 연결
+  Object.keys(mapFiles).forEach(floor => {
+    const fileName = mapFiles[floor];
+
+    // 한글과 띄어쓰기가 포함된 파일명 처리
+    const imageURL = new URL(
+      encodeURIComponent(fileName),
+      document.baseURI
+    ).href;
+
+    try {
+      localStorage.setItem(
+        storagePrefix + floor,
+        imageURL
+      );
+    } catch (error) {
+      console.warn(
+        floor + "층 지도 저장 실패:",
+        error
+      );
+    }
+  });
+
+  // 이미 지도 사진에 출현 위치가 표시되어 있으므로
+  // 핀, 수동 사진 등록 기능은 공개판에서 숨김
+  const style = document.createElement("style");
+
+  style.id = "imo-onyx-public-maps-style";
+
+  style.textContent = `
+    /* 지도에 수동으로 찍은 핀 숨김 */
+    #onx-light-map .onx-pin {
+      display: none !important;
+    }
+
+    /* 사진 등록 / 삭제 버튼 숨김 */
+    #onx-light-map [data-action="pick-photo"],
+    #onx-light-map [data-action="delete-photo"] {
+      display: none !important;
+    }
+
+    /* 몬스터 위치 찍기 / 삭제 버튼 숨김 */
+    #onx-light-map [data-action="place"],
+    #onx-light-map [data-action="delete-pin"],
+    #onx-light-map [data-action="cancel-place"] {
+      display: none !important;
+    }
+
+    /* 지도 첫 번째 카드의 안내 문구 정리 */
+    #onx-light-map
+    #onx-map-content > .onx-card:first-child
+    > .onx-sub {
+      display: none !important;
+    }
+
+    /* 비어 있는 사진 등록 버튼 영역 숨김 */
+    #onx-light-map
+    #onx-map-content > .onx-card:first-child
+    > .onx-actions {
+      display: none !important;
+    }
+
+    /* 지도 표시 */
+    #onx-light-map .onx-photo {
+      margin: 14px 0;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    #onx-light-map .onx-photo img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+  `;
+
+  document.head.appendChild(style);
+
+  // 지도 상단의 '등록한 핀 0개' 문구 제거
+  function tidyMapHeader() {
+    const title = document.querySelector(
+      "#onx-light-map " +
+      "#onx-map-content > .onx-card:first-child > h3"
+    );
+
+    if (!title) return;
+
+    const current = title.textContent;
+
+    const cleaned = current.replace(
+      /\s*·\s*등록한 핀\s*\d+개/,
+      ""
+    );
+
+    if (current !== cleaned) {
+      title.textContent = cleaned;
+    }
+  }
+
+  const observer = new MutationObserver(
+    tidyMapHeader
+  );
+
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  tidyMapHeader();
+
+  console.log(
+    "✅ IMO.ONYX 등대던전 1~5층 공개 지도 연결 완료"
+  );
+
+})();
+
 
