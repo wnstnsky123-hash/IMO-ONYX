@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+< lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IMO.ONYX</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111722;color:white;font-family:Arial,sans-serif}header{text-align:center;padding:45px 15px 30px;background:#1c2533;border-bottom:2px solid #d8b66a}h1{color:#e8c77b;font-size:36px;margin:10px 0;letter-spacing:2px}.subtitle{color:#aeb8c7;font-size:14px}.container{padding:20px 15px;max-width:600px;margin:auto}.menu{display:grid;grid-template-columns:1fr 1fr;gap:12px}.item{background:#253144;border:1px solid #3d4b60;border-radius:15px;padding:25px 8px;text-align:center;font-size:15px;color:white;cursor:pointer}.item span{display:block;font-size:30px;margin-bottom:12px}.item:active{background:#3a4b64}footer{text-align:center;color:#8190a5;font-size:12px;padding:30px}h2{color:#e8c77b;text-align:center}.btn{width:100%;margin-top:20px;padding:15px;background:#d8b66a;color:#111722;border:0;border-radius:12px;font-size:16px;cursor:pointer}.panel{background:#253144;border-radius:12px;padding:18px;line-height:1.7;margin-top:15px}.panel h3{color:#e8c77b}.search{width:100%;padding:14px;border-radius:10px;border:1px solid #d8b66a;margin-bottom:15px;font-size:16px}.muted{color:#aeb8c7}.monster-card{border:1px solid #d8b66a;border-radius:12px;padding:15px;margin-bottom:12px}.monster-card img{display:block;max-width:120px;max-height:120px;object-fit:contain;margin:12px auto}.tag{display:inline-block;background:#34445c;border-radius:8px;padding:7px 10px;margin:3px;font-size:14px}button{cursor:pointer}
+</style>
+</head>
+<>
+<header><div style="font-size:45px">🛡️</div><h1>IMO.ONYX</h1><div class="subtitle">아이모 길드 전용 커뮤니티</div></header>
+<main class="container"></main>
+<footer>IMO.ONYX © 2026</footer>
+<script src="data.js"></script>
+  <script src="warrior-guide.js"></script>
+  <script src="ranger-beginner.js"></script>
+  <script src="ranger-guide.js"></script>
+  <script src="ranger-middle-data.js"></script>
+
+<script src="monsters.js"></script>
+<script src="monster-catalog.js"></script>
+
+  
+<script>
+'use strict';
+const app=document.querySelector('.container');
+const homeItems=[['⚔️','직업별 공략'],['📖','도감'],['👹','몬스터 정보'],['🗺️','지역별 지도'],['💎','아이템 정보'],['🔨','강화 도우미'],['💬','길드 게시판'],['👑','길드원 관리']];
+const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+function button(label,fn){const b=document.createElement('button');b.className='btn';b.textContent=label;b.addEventListener('click',fn);return b}
+function heading(text){const h=document.createElement('h2');h.textContent=text;return h}
+function grid(items,onSelect){const el=document.createElement('div');el.className='menu';items.forEach(([emoji,label,value])=>{const item=document.createElement('div');item.className='item';item.setAttribute('role','button');item.tabIndex=0;const span=document.createElement('span');span.textContent=emoji;item.append(span,document.createTextNode(label));const action=()=>onSelect(value??label);item.addEventListener('click',action);item.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();action()}});el.append(item)});return el}
+function render(...nodes){app.replaceChildren(...nodes);window.scrollTo(0,0)}
+function goHome(){render(grid(homeItems,openMenu))}
+function openMenu(name){if(name==='직업별 공략')return showJobs();if(name==='몬스터 정보'||name==='도감')return showMonsterBook();alert(name+' 기능은 준비 중입니다!')}
+function showJobs(){render(heading('⚔️ 직업별 공략'),grid([['🛡️','전사'],['🏹','레인저'],['🔮','마법사'],['🥋','무도가']],showLevels),button('← 홈으로',goHome))}
+function showLevels(job){render(heading(job+' 육성 공략'),grid([['🌱','초급'],['⚔️','중급'],['👑','고급']],level=>showGuide(job,level)),button('← 직업 선택',showJobs))}
+function showGuide(job,level){if(level==='초급'&&(job==='레인저'||job==='전사')){const btn=button('📚 레벨별 상세 공략 (Lv.1~33)',()=>showJobLevels(job));btn.style.background='#253144';btn.style.color='white';btn.style.border='1px solid #d8b66a';render(heading((job==='레인저'?'🏹 ':'⚔️ ')+job+' 초급 공략'),btn,button('← 단계 선택',()=>showLevels(job)));return}const menus=[['📊','추천 능력치'],['📖','도감 우선순위'],['⚡','스킬 가이드'],['🛡️','추천 장비'],['🗺️','레벨별 사냥터'],['📜','퀘스트'],['💎','추천 보석'],['💰','골드 벌이']];render(heading(job+' '+level+' 공략'),grid(menus,category=>showDetail(job,level,category)),button('← 단계 선택',()=>showLevels(job)))}
+function showDetail(job,level,category){let content;try{content=typeof guideData!=='undefined'?guideData?.[job]?.[level]?.[category]:null;if(job==='전사'&&level==='중급'&&category==='퀘스트'&&typeof warriorSharedGuides!=='undefined'){content=warriorSharedGuides.find(g=>g.minLevel<=33&&g.maxLevel>=33)?.quests??content}}catch(e){console.warn(e)}const panel=document.createElement('div');panel.className='panel';if(content){panel.innerHTML=String(content)}else{panel.textContent='📚 공략 자료 준비 중입니다!'}render(heading(job+' '+level+' · '+category),panel,button('← 공략 메뉴로',()=>showGuide(job,level)))}
+function showJobLevels(job){const levels=Array.from({length:33},(_,i)=>[job==='레인저'?'🏹':'⚔️','Lv.'+(i+1),i+1]);render(heading((job==='레인저'?'🏹 ':'⚔️ ')+job+' 초급 레벨별 공략'),grid(levels,level=>showJobDetail(job,level)),button('← '+job+' 초급으로',()=>showGuide(job,'초급')))}
+function getJobGuide(job,level){try{if(job==='레인저'&&typeof getRangerGuide==='function')return getRangerGuide(level);if(job==='전사'&&typeof getWarriorGuide==='function')return getWarriorGuide(level)}catch(e){console.error(e)}return null}
+
+function showJobDetail(job, level) {
+  
+if (job === "전사" &&
+    typeof renderIMOWarrior === "function") {
+  const panel = document.createElement("div");
+
+  render(
+    panel,
+    button("← 레벨 선택으로",
+      () => showJobLevels(job))
+  );
+
+  renderIMOWarrior(panel, level);
+  return;
+}
+
+  
+
+if (job === "레인저" &&
+    typeof renderIMORanger === "function") {
+
+  const panel = document.createElement("div");
+
+  render(
+    panel,
+    button("← 레벨 선택으로",
+      () => showJobLevels(job))
+  );
+
+  renderIMORanger(panel, level);
+  return;
+}
+
+
+  const data = getJobGuide(job, level);
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+
+  const fields = [
+    ['📊 추천 능력치', 'stats'],
+    ['🛡️ 추천 장비', 'equipment'],
+    ['🗺️ 추천 사냥터', 'hunting'],
+    ['📜 필수 퀘스트', 'quests'],
+    ['📚 추천 스킬', 'skills']
+  ];
+
+  fields.forEach(([label, key]) => {
+    const h = document.createElement('h3');
+    h.textContent = label;
+
+    const p = document.createElement('div');
+    const value = data?.[key];
+
+    if (value == null || value === '') {
+      p.textContent = '정보 준비 중';
+    } else if (typeof value === 'string') {
+      p.innerHTML = value;
+    } else {
+      p.textContent = JSON.stringify(value);
+    }
+
+    panel.append(h, p);
+  });
+
+  if (!data) {
+    const note = document.createElement('p');
+    note.className = 'muted';
+    note.textContent =
+      job + ' 레벨별 데이터가 아직 연결되지 않았습니다.';
+    panel.prepend(note);
+  }
+
+  render(
+    heading(job + ' Lv.' + level + ' 상세 공략'),
+    panel,
+    button('← 레벨 선택으로', () => showJobLevels(job))
+  );
+}
+
+function showRangerLevels(){showJobLevels('레인저')}
+function showRangerDetail(level){showJobDetail('레인저',level)}
+function showWarriorLevels(){showJobLevels('전사')}
+function showWarriorDetail(level){showJobDetail('전사',level)}
+function showRangerHunting(level){const data=getJobGuide('레인저',level);const box=document.getElementById('rangerHuntingResult');if(box)box.textContent=data?.hunting??'정보 준비 중'}
+function getMonsters(){return typeof monsterData!=='undefined'&&Array.isArray(monsterData)?monsterData:[]}
+function dropsText(drops){if(!Array.isArray(drops)||!drops.length)return '정보 준비 중';return drops.map(x=>typeof x==='string'?x:(x?.name??'이름 미상')).join(', ')}
+function showMonsterBook(){const title=heading('👾 몬스터 도감');const search=document.createElement('input');search.id='monsterSearch';search.className='search';search.placeholder='🔍 몬스터·아이템·사냥터 검색';search.setAttribute('aria-label','몬스터 검색');const results=document.createElement('div');results.id='monsterResults';search.addEventListener('input',()=>searchMonsters());render(title,search,results,button('← 홈으로',goHome));searchMonsters()}
+function searchMonsters(){const input=document.getElementById('monsterSearch');const results=document.getElementById('monsterResults');if(!input||!results)return;const keyword=input.value.trim().toLowerCase();const filtered=getMonsters().filter(m=>[m.name,m.location,dropsText(m.drops)].join(' ').toLowerCase().includes(keyword));results.replaceChildren();if(!filtered.length){results.textContent=getMonsters().length?'검색 결과가 없습니다.':'몬스터 데이터가 없습니다. monsters.js를 확인해 주세요.';return}filtered.forEach(m=>{const card=document.createElement('div');card.className='monster-card';const h=document.createElement('h3');h.textContent='👾 '+(m.name??'이름 미상');card.append(h);if(m.image){const img=document.createElement('img');img.src=m.image;img.alt=String(m.name??'몬스터');img.onerror=()=>img.remove();card.append(img)}const tags=document.createElement('div');[['⚔️ Lv.',m.level],['⭐ EXP ',m.exp],['❤️ HP ',m.hp]].forEach(([label,val])=>{const s=document.createElement('span');s.className='tag';s.textContent=label+(val??'정보 준비 중');tags.append(s)});card.append(tags);[['🗺️ 출현 장소: ',m.location],['⏱️ 재부활: ',m.respawn],['🎁 드롭 아이템: ',dropsText(m.drops)]].forEach(([label,val])=>{const p=document.createElement('p');p.textContent=label+(val||'정보 준비 중');card.append(p)});const details=document.createElement('p');details.textContent='📖 설명: '+(m.description||'정보 준비 중');details.hidden=true;const b=button('📖 상세 정보 보기',()=>{details.hidden=!details.hidden;b.textContent=details.hidden?'📖 상세 정보 보기':'📖 상세 정보 닫기'});card.append(b,details);results.append(card)})}
+goHome();
+</script>
+<script src="mage-guide.js"></script>
+<script src="breaker-guide.js"></script>
+</body>
+</html>
+
